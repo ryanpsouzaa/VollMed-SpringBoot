@@ -2,8 +2,7 @@ package med.voll.api.controller;
 
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import med.voll.api.pacientes.*;
-import org.apache.coyote.Response;
+import med.voll.api.domain.pacientes.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -54,5 +53,10 @@ public class PacientesController {
         paciente.excluirDados();
         return ResponseEntity.noContent().build();
 
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity detalharPaciente(@PathVariable Long id){
+        Paciente paciente = repositorio.getReferenceById(id);
+        return ResponseEntity.ok(new DadosDetalhamentoPacientes(paciente));
     }
 }
