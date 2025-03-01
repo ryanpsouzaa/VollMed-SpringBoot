@@ -5,6 +5,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import med.voll.api.domain.usuarios.Usuario;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -15,9 +16,12 @@ import java.util.Date;
 @Service
 public class TokenService {
 
+    @Value("${api.voll.med.senha.jwt}")
+    private String senha;
+
     public String gerarToken(Usuario usuario){
         try {
-            var algoritmo = Algorithm.HMAC256("123456");
+            var algoritmo = Algorithm.HMAC256(senha);
             return JWT.create()
                     .withIssuer("API Voll.med")
                     .withSubject(usuario.getLogin())
@@ -29,7 +33,7 @@ public class TokenService {
     }
 
     private Instant dataExpiracao() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-30:00"));
+        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
     }
 
 }
