@@ -4,6 +4,11 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import med.voll.api.domain.usuarios.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -13,22 +18,36 @@ import java.io.IOException;
 @Component
 public class SecurityFilter extends OncePerRequestFilter {
 
+    @Autowired
+    private TokenService tokenService;
+
+    @Autowired
+    private UsuarioRepository repository;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String tokenJWT = recuperarToken(request);
-        System.out.println(tokenJWT);
-        
+
+        if(tokenJWT != null){
+            var identificador = tokenService.getSubject(tokenJWT); //identificador recuperado
+            var usuario = repository.findByLogin(identificador); //objeto usuario recuperado
+
+            var authentication = new UsernamePasswordAuthenticationToken(usuario, null,
+                    usuario.getAuthorities()); //DTO que representa o usuario
+
+            SecurityContextHolder.getContext().setAuthentication(authentication); //autenticacao forcada
+            //agora o spring reconhece que o usuario esta autenticado
+        }
+
         filterChain.doFilter(request, response);
 
     }
 
     private String recuperarToken(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-        if(token == null){
-            throw new RuntimeException("Token JWT não foi enviado para o cabecalho Authorization.");
-        } else{
-
+        if(token != null) {
             return token.replace("Bearer ", "");
         }
+        return null;
     }
 }
